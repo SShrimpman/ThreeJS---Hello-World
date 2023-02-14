@@ -54,6 +54,9 @@ import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 import gsap from 'gsap';
 
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+
 // 1 the Scene
 
 const scene = new Scene();
@@ -71,46 +74,31 @@ scene.add(grid);
 
 // 2 the Object
 
-const loader = new TextureLoader();
+const loader = new GLTFLoader();
 
-const geometry = new BoxGeometry( 2, 2, 2 );
+const loadingScreen = document.getElementById('loader-container');
 
-const material = new MeshBasicMaterial({
-    color: 'white',
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1
-});
+const progressText = document.getElementById('progress-text');
 
-const orangeMaterial = new MeshLambertMaterial( { color: 'orange' } );
-// const blueMaterial = new MeshLambertMaterial( { color: 'blue' } );
-// const whiteMaterial = new MeshLambertMaterial( { color: 'white' } );
+loader.load('./police_station.glb',
 
-const box = new Mesh( geometry, material );
-scene.add( box );
-box.position.x += 2;
+    (gltf) => {
+        scene.add(gltf.scene);
+        loadingScreen.classList.add('hidden');
+    },
 
-const edgesGeo = new EdgesGeometry(geometry);
-const edgesMaterial = new LineBasicMaterial({color: 0x000000});
-const wireframe = new LineSegments(edgesGeo, edgesMaterial);
-box.add( wireframe );
+    (progress) => {
+        console.log(progress);
+        const progressPercent = progress.loaded / progress.total * 100;
+        const formatted = Math.trunc(progressPercent);
+        progressText.textContent = `Loading: ${formatted}%`;
+    },
 
-const cubeAxes = new AxesHelper( 0.5 );
-cubeAxes.material.depthTest = false;
-cubeAxes.renderOrder = 2
-box.add(cubeAxes);
+    (error) => {
+        console.log(error);
+    }
 
-
-// const earth = new Mesh( geometry, blueMaterial );
-// earth.scale.set( 0.2, 0.2, 0.2);
-// earth.position.x += 2;
-// sun.add( earth );
-
-
-// const moon = new Mesh( geometry, whiteMaterial );
-// moon.scale.set( 0.5, 0.5, 0.5);
-// moon.position.x += 1;
-// earth.add( moon );
+);
 
 
 // 3 the Camera
@@ -157,6 +145,8 @@ CameraControls.install( { THREE: subsetOfTHREE } );
 const clock = new Clock();
 const cameraControls = new CameraControls( camera, canvas );
 cameraControls.dollyToCursor = true;
+
+cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
 
 
 // 8 Animation
