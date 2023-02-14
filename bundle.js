@@ -29552,6 +29552,35 @@ class Light extends Object3D {
 
 }
 
+class HemisphereLight extends Light {
+
+	constructor( skyColor, groundColor, intensity ) {
+
+		super( skyColor, intensity );
+
+		this.isHemisphereLight = true;
+
+		this.type = 'HemisphereLight';
+
+		this.position.copy( Object3D.DEFAULT_UP );
+		this.updateMatrix();
+
+		this.groundColor = new Color( groundColor );
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.groundColor.copy( source.groundColor );
+
+		return this;
+
+	}
+
+}
+
 const _projScreenMatrix$1 = /*@__PURE__*/ new Matrix4();
 const _lightPositionWorld$1 = /*@__PURE__*/ new Vector3();
 const _lookTarget$1 = /*@__PURE__*/ new Vector3();
@@ -32371,7 +32400,6 @@ const loader = new TextureLoader();
 const geometry = new BoxGeometry( 0.5, 0.5, 0.5);
 
 const orangeMaterial = new MeshLambertMaterial( { 
-    color: 0xffffff,
     map: loader.load( './sample.png' ) 
 } );
 
@@ -32403,9 +32431,12 @@ const light1 = new DirectionalLight();
 light1.position.set(3, 2, 1).normalize();
 scene.add( light1 );
 
-const light2 = new DirectionalLight();
-light2.position.set(-3, -2, -1).normalize();
-scene.add( light2 );
+const hemiSphereLight = new HemisphereLight(0xb1e1ff, 0x7075ff);
+scene.add( hemiSphereLight );
+
+// const light2 = new DirectionalLight();
+// light2.position.set(-3, -2, -1).normalize();
+// scene.add( light2 );
 
 // 6 Responsivity
 
