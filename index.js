@@ -95,6 +95,7 @@ const edgesMaterial = new LineBasicMaterial({color: 0x000000});
 const wireframe = new LineSegments(edgesGeo, edgesMaterial);
 box.add( wireframe );
 
+
 const cubeAxes = new AxesHelper( 0.5 );
 cubeAxes.material.depthTest = false;
 cubeAxes.renderOrder = 2
