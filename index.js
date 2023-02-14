@@ -23,7 +23,9 @@ import {
     TextureLoader,
     AmbientLight,
     HemisphereLight,
-    SphereGeometry
+    SphereGeometry,
+    AxesHelper,
+    GridHelper
 } from 'three';
 
 import  CameraControls  from 'camera-controls';
@@ -50,35 +52,55 @@ const subsetOfTHREE = {
 const scene = new Scene();
 const canvas = document.getElementById('three-canvas');
 
+const axes = new AxesHelper();
+axes.material.depthTest = false;
+axes.renderOrder = 2
+scene.add(axes);
+
+const grid = new GridHelper();
+grid.renderOrder = 1;
+scene.add(grid);
+
+
 // 2 the Object
 
 const loader = new TextureLoader();
 
-const geometry = new SphereGeometry( 0.5);
+const geometry = new BoxGeometry( 2, 2, 2 );
 
 const orangeMaterial = new MeshLambertMaterial( { color: 'orange' } );
-const blueMaterial = new MeshLambertMaterial( { color: 'blue' } );
-const whiteMaterial = new MeshLambertMaterial( { color: 'white' } );
+// const blueMaterial = new MeshLambertMaterial( { color: 'blue' } );
+// const whiteMaterial = new MeshLambertMaterial( { color: 'white' } );
 
-const sun = new Mesh( geometry, orangeMaterial );
-scene.add( sun );
+const box = new Mesh( geometry, orangeMaterial );
+scene.add( box );
+box.position.x += 2;
 
-const earth = new Mesh( geometry, blueMaterial );
-earth.scale.set( 0.2, 0.2, 0.2);
-earth.position.x += 2;
-sun.add( earth );
+const cubeAxes = new AxesHelper( 0.5 );
+cubeAxes.material.depthTest = false;
+cubeAxes.renderOrder = 2
+box.add(cubeAxes);
 
 
-const moon = new Mesh( geometry, whiteMaterial );
-moon.scale.set( 0.5, 0.5, 0.5);
-moon.position.x += 1;
-earth.add( moon );
+// const earth = new Mesh( geometry, blueMaterial );
+// earth.scale.set( 0.2, 0.2, 0.2);
+// earth.position.x += 2;
+// sun.add( earth );
+
+
+// const moon = new Mesh( geometry, whiteMaterial );
+// moon.scale.set( 0.5, 0.5, 0.5);
+// moon.position.x += 1;
+// earth.add( moon );
 
 
 // 3 the Camera
 
 const camera = new PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight);
-camera.position.z = 3;
+camera.position.z = 5;
+camera.position.y = 6;
+camera.position.x = 4;
+camera.lookAt( axes.position );
 scene.add(camera);
 
 // 4 the Renderer
@@ -86,6 +108,7 @@ scene.add(camera);
 const renderer = new WebGLRenderer({ canvas });
 renderer.setPixelRatio( Math.min(window.devicePixelRatio, 2) );
 renderer.setSize( canvas.clientWidth, canvas.clientHeight, false );
+renderer.setClearColor(0x3E3E3E, 1);
 
 // 5 Lights
 
@@ -123,8 +146,8 @@ function animate() {
     const delta = clock.getDelta();
     cameraControls.update( delta );
 
-    sun.rotation.y += 0.01;
-    earth.rotation.y += 0.03;
+    // sun.rotation.y += 0.01;
+    // earth.rotation.y += 0.03;
 
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
