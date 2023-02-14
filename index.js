@@ -74,31 +74,42 @@ scene.add(grid);
 
 // 2 the Object
 
-const loader = new GLTFLoader();
+const material = new MeshLambertMaterial({ color: 'orange' });
+const geometry = new BoxGeometry();
+const cubeMesh = new Mesh(geometry, material);
+scene.add(cubeMesh);
 
-const loadingScreen = document.getElementById('loader-container');
+const cubeMesh2 = new Mesh(geometry, material);
+cubeMesh2.position.x += 2;
+scene.add(cubeMesh2);
 
-const progressText = document.getElementById('progress-text');
+const cubes = [cubeMesh, cubeMesh2];
 
-loader.load('./police_station.glb',
+// const loader = new GLTFLoader();
 
-    (gltf) => {
-        scene.add(gltf.scene);
-        loadingScreen.classList.add('hidden');
-    },
+// const loadingScreen = document.getElementById('loader-container');
 
-    (progress) => {
-        console.log(progress);
-        const progressPercent = progress.loaded / progress.total * 100;
-        const formatted = Math.trunc(progressPercent);
-        progressText.textContent = `Loading: ${formatted}%`;
-    },
+// const progressText = document.getElementById('progress-text');
 
-    (error) => {
-        console.log(error);
-    }
+// loader.load('./police_station.glb',
 
-);
+//     (gltf) => {
+//         scene.add(gltf.scene);
+//         loadingScreen.classList.add('hidden');
+//     },
+
+//     (progress) => {
+//         console.log(progress);
+//         const progressPercent = progress.loaded / progress.total * 100;
+//         const formatted = Math.trunc(progressPercent);
+//         progressText.textContent = `Loading: ${formatted}%`;
+//     },
+
+//     (error) => {
+//         console.log(error);
+//     }
+
+// );
 
 
 // 3 the Camera
@@ -146,10 +157,71 @@ const clock = new Clock();
 const cameraControls = new CameraControls( camera, canvas );
 cameraControls.dollyToCursor = true;
 
-cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
+cameraControls.setLookAt( 3, 4, 2, 0, 0, 0);
 
+// 8 Picking
 
-// 8 Animation
+const raycaster = new Raycaster();
+const mouse = new Vector2();
+const previousSelection = {
+    geometry: null,
+    material: null
+}
+
+const highlightMat = new MeshBasicMaterial({ color: 'red' });
+
+window.addEventListener('mousemove', (event) => {
+    
+    getMousePosition(event);
+
+    raycaster.setFromCamera( mouse, camera );
+    const intersections = raycaster.intersectObjects(cubes);
+
+    if (hasNoCollisions(intersections)) {
+        restorePreviousSelection();
+        return;
+    };
+    const foundItem = intersections[0];
+
+    
+    if (isPreviousSelection(foundItem)) return;
+
+    restorePreviousSelection();
+    savePreviousSelection(foundItem);
+    highlightItem(foundItem);
+})
+function getMousePosition(event){
+    mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+    mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
+}
+
+function hasNoCollisions(intersections){
+    return intersections.length === 0;
+}
+
+function highlightItem(item){
+    item.object.material = highlightMat;
+}
+
+function isPreviousSelection(item){
+    return isPreviousSelection.mesh === item.object;
+}
+
+function savePreviousSelection(item) {
+    previousSelection.mesh = item.object;
+    previousSelection.material = item.object.material;
+}
+
+function restorePreviousSelection() {
+    if(previousSelection.mesh) {
+        previousSelection.mesh.material = previousSelection.material;
+        previousSelection.mesh = null;
+        previousSelection.material = null;
+    }
+
+}
+
+// 9 Animation
 
 function animate() {
     const delta = clock.getDelta();
@@ -163,7 +235,7 @@ function animate() {
 }
 animate();
 
-// 9 GUI
+// 10 GUI
 
 const gui = new GUI();
 const min = -3;
