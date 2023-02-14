@@ -22,7 +22,8 @@ import {
     Clock,
     TextureLoader,
     AmbientLight,
-    HemisphereLight
+    HemisphereLight,
+    SphereGeometry
 } from 'three';
 
 import  CameraControls  from 'camera-controls';
@@ -53,21 +54,26 @@ const canvas = document.getElementById('three-canvas');
 
 const loader = new TextureLoader();
 
-const geometry = new BoxGeometry( 0.5, 0.5, 0.5);
+const geometry = new SphereGeometry( 0.5);
 
-const orangeMaterial = new MeshLambertMaterial( { 
-    map: loader.load( './sample.png' ) 
-} );
+const orangeMaterial = new MeshLambertMaterial( { color: 'orange' } );
+const blueMaterial = new MeshLambertMaterial( { color: 'blue' } );
+const whiteMaterial = new MeshLambertMaterial( { color: 'white' } );
 
-const blueMaterial = new MeshBasicMaterial( { color: 'blue' } );
+const sun = new Mesh( geometry, orangeMaterial );
+scene.add( sun );
 
-const orangeCube = new Mesh( geometry, orangeMaterial );
-scene.add( orangeCube );
+const earth = new Mesh( geometry, blueMaterial );
+earth.scale.set( 0.2, 0.2, 0.2);
+earth.position.x += 2;
+sun.add( earth );
 
-const bigBlueCube = new Mesh( geometry, blueMaterial );
-bigBlueCube.position.x += 2;
-bigBlueCube.scale.set(2, 2, 2);
-scene.add( bigBlueCube );
+
+const moon = new Mesh( geometry, whiteMaterial );
+moon.scale.set( 0.5, 0.5, 0.5);
+moon.position.x += 1;
+earth.add( moon );
+
 
 // 3 the Camera
 
@@ -116,6 +122,9 @@ cameraControls.dollyToCursor = true;
 function animate() {
     const delta = clock.getDelta();
     cameraControls.update( delta );
+
+    sun.rotation.y += 0.01;
+    earth.rotation.y += 0.03;
 
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
