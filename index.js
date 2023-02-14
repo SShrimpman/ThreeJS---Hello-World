@@ -190,6 +190,7 @@ window.addEventListener('mousemove', (event) => {
     savePreviousSelection(foundItem);
     highlightItem(foundItem);
 })
+
 function getMousePosition(event){
     mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
     mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
