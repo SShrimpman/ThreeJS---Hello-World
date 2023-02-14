@@ -25,7 +25,10 @@ import {
     HemisphereLight,
     SphereGeometry,
     AxesHelper,
-    GridHelper
+    GridHelper,
+    EdgesGeometry,
+    LineBasicMaterial,
+    LineSegments
 } from 'three';
 
 import  CameraControls  from 'camera-controls';
@@ -72,13 +75,25 @@ const loader = new TextureLoader();
 
 const geometry = new BoxGeometry( 2, 2, 2 );
 
+const material = new MeshBasicMaterial({
+    color: 'white',
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1
+});
+
 const orangeMaterial = new MeshLambertMaterial( { color: 'orange' } );
 // const blueMaterial = new MeshLambertMaterial( { color: 'blue' } );
 // const whiteMaterial = new MeshLambertMaterial( { color: 'white' } );
 
-const box = new Mesh( geometry, orangeMaterial );
+const box = new Mesh( geometry, material );
 scene.add( box );
 box.position.x += 2;
+
+const edgesGeo = new EdgesGeometry(geometry);
+const edgesMaterial = new LineBasicMaterial({color: 0x000000});
+const wireframe = new LineSegments(edgesGeo, edgesMaterial);
+box.add( wireframe );
 
 const cubeAxes = new AxesHelper( 0.5 );
 cubeAxes.material.depthTest = false;
@@ -178,7 +193,7 @@ const colorParam = {
     value: 0xff0000
 }
 
-gui.addColor(colorParam, 'value').name("Color").onChange(() => {
+gui.addFolder('Colors').addColor(colorParam, 'value').name("Color").onChange(() => {
     box.material.color.set(colorParam.value);
 });
 
@@ -189,4 +204,4 @@ const functionParam = {
     }
 }
 
-gui.add(functionParam, 'spin').name("Spin");
+gui.addFolder('Animation').add(functionParam, 'spin').name("Spin");
