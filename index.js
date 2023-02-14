@@ -1,7 +1,10 @@
 import {
     Scene,
     BoxGeometry,
+    DirectionalLight,
     MeshBasicMaterial,
+    MeshLambertMaterial,
+    MeshPhongMaterial,
     Mesh,
     PerspectiveCamera,
     WebGLRenderer,
@@ -16,7 +19,8 @@ import {
     Sphere,
     Raycaster,
     MathUtils,
-    Clock
+    Clock,
+    TextureLoader
 } from 'three';
 
 import  CameraControls  from 'camera-controls';
@@ -45,8 +49,15 @@ const canvas = document.getElementById('three-canvas');
 
 // 2 the Object
 
+const loader = new TextureLoader();
+
 const geometry = new BoxGeometry( 0.5, 0.5, 0.5);
-const orangeMaterial = new MeshBasicMaterial( { color: 'orange' } );
+
+const orangeMaterial = new MeshLambertMaterial( { 
+    color: 0xffffff,
+    map: loader.load( './sample.png' ) 
+} );
+
 const blueMaterial = new MeshBasicMaterial( { color: 'blue' } );
 
 const orangeCube = new Mesh( geometry, orangeMaterial );
@@ -69,7 +80,17 @@ const renderer = new WebGLRenderer({ canvas });
 renderer.setPixelRatio( Math.min(window.devicePixelRatio, 2) );
 renderer.setSize( canvas.clientWidth, canvas.clientHeight, false );
 
-// 5 Responsivity
+// 5 Lights
+
+const light1 = new DirectionalLight();
+light1.position.set(3, 2, 1).normalize();
+scene.add( light1 );
+
+const light2 = new DirectionalLight();
+light2.position.set(-3, -2, -1).normalize();
+scene.add( light2 );
+
+// 6 Responsivity
 
 window.addEventListener('resize', () => {
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -78,7 +99,7 @@ window.addEventListener('resize', () => {
     
 })
 
-// 6 Controls
+// 7 Controls
 
 CameraControls.install( { THREE: subsetOfTHREE } );
 const clock = new Clock();
@@ -86,7 +107,7 @@ const cameraControls = new CameraControls( camera, canvas );
 cameraControls.dollyToCursor = true;
 
 
-// 7 Animation
+// 8 Animation
 
 function animate() {
     const delta = clock.getDelta();
