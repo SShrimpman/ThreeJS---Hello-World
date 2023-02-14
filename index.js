@@ -47,6 +47,10 @@ const subsetOfTHREE = {
     }
 };
 
+import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
+import gsap from 'gsap';
+
 // 1 the Scene
 
 const scene = new Scene();
@@ -153,3 +157,36 @@ function animate() {
     requestAnimationFrame( animate );
 }
 animate();
+
+// 9 GUI
+
+const gui = new GUI();
+const min = -3;
+const max = 3;
+const step = 0.01;
+
+const transformationFolder = gui.addFolder('Transformation');
+
+
+transformationFolder.add(box.position, 'y', min, max, step).name("Position Y");
+transformationFolder.add(box.position, 'x', min, max, step).name("Position X");
+transformationFolder.add(box.position, 'z', min, max, step).name("Position Z");
+
+gui.addFolder('Visibility').add(box, 'visible');
+
+const colorParam = {
+    value: 0xff0000
+}
+
+gui.addColor(colorParam, 'value').name("Color").onChange(() => {
+    box.material.color.set(colorParam.value);
+});
+
+
+const functionParam = {
+    spin: () => {
+        gsap.to( box.rotation, { y: box.rotation.y + 10, duration: 1})
+    }
+}
+
+gui.add(functionParam, 'spin').name("Spin");
