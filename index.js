@@ -56,6 +56,8 @@ import gsap from 'gsap';
 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import { CSS2DRenderer, CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+
 
 // 1 the Scene
 
@@ -74,42 +76,31 @@ scene.add(grid);
 
 // 2 the Object
 
-const material = new MeshLambertMaterial({ color: 'orange' });
-const geometry = new BoxGeometry();
-const cubeMesh = new Mesh(geometry, material);
-scene.add(cubeMesh);
+const loader = new GLTFLoader();
 
-const cubeMesh2 = new Mesh(geometry, material);
-cubeMesh2.position.x += 2;
-scene.add(cubeMesh2);
+const loadingScreen = document.getElementById('loader-container');
+const progressText = document.getElementById('progress-text');
+let policeStation;
 
-const cubes = [cubeMesh, cubeMesh2];
+loader.load('./police_station.glb',
 
-// const loader = new GLTFLoader();
+    (gltf) => {
+        policeStation = gltf.scene;
+        scene.add(policeStation);
+        loadingScreen.classList.add('hidden');
+    },
 
-// const loadingScreen = document.getElementById('loader-container');
+    (progress) => {
+        const progressPercent = progress.loaded / progress.total * 100;
+        const formatted = Math.trunc(progressPercent);
+        progressText.textContent = `Loading: ${formatted}%`;
+    },
 
-// const progressText = document.getElementById('progress-text');
+    (error) => {
+        console.log(error);
+    }
 
-// loader.load('./police_station.glb',
-
-//     (gltf) => {
-//         scene.add(gltf.scene);
-//         loadingScreen.classList.add('hidden');
-//     },
-
-//     (progress) => {
-//         console.log(progress);
-//         const progressPercent = progress.loaded / progress.total * 100;
-//         const formatted = Math.trunc(progressPercent);
-//         progressText.textContent = `Loading: ${formatted}%`;
-//     },
-
-//     (error) => {
-//         console.log(error);
-//     }
-
-// );
+);
 
 
 // 3 the Camera
@@ -127,6 +118,14 @@ const renderer = new WebGLRenderer({ canvas });
 renderer.setPixelRatio( Math.min(window.devicePixelRatio, 2) );
 renderer.setSize( canvas.clientWidth, canvas.clientHeight, false );
 renderer.setClearColor(0x3E3E3E, 1);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.top = '0px';
+document.body.appendChild(labelRenderer.domElement);
+
 
 // 5 Lights
 
@@ -147,6 +146,7 @@ window.addEventListener('resize', () => {
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( canvas.clientWidth, canvas.clientHeight, false );
+    labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
     
 })
 
@@ -157,70 +157,54 @@ const clock = new Clock();
 const cameraControls = new CameraControls( camera, canvas );
 cameraControls.dollyToCursor = true;
 
-cameraControls.setLookAt( 3, 4, 2, 0, 0, 0);
+cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
 
 // 8 Picking
 
 const raycaster = new Raycaster();
 const mouse = new Vector2();
-const previousSelection = {
-    geometry: null,
-    material: null
-}
 
-const highlightMat = new MeshBasicMaterial({ color: 'red' });
-
-window.addEventListener('mousemove', (event) => {
-    
-    getMousePosition(event);
-
-    raycaster.setFromCamera( mouse, camera );
-    const intersections = raycaster.intersectObjects(cubes);
-
-    if (hasNoCollisions(intersections)) {
-        restorePreviousSelection();
-        return;
-    };
-    const foundItem = intersections[0];
-
-    
-    if (isPreviousSelection(foundItem)) return;
-
-    restorePreviousSelection();
-    savePreviousSelection(foundItem);
-    highlightItem(foundItem);
-})
-
-function getMousePosition(event){
+window.addEventListener( 'dblclick', (event) => {
     mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
     mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
-}
 
-function hasNoCollisions(intersections){
-    return intersections.length === 0;
-}
+    raycaster.setFromCamera( mouse, camera );
+    const intersects = raycaster.intersectObject(policeStation);
 
-function highlightItem(item){
-    item.object.material = highlightMat;
-}
+    if(!intersects.length) return;
+    
+    const collisionLocation = intersects[0].point;
 
-function isPreviousSelection(item){
-    return isPreviousSelection.mesh === item.object;
-}
+    const message = window.prompt('Describe the issue:');
 
-function savePreviousSelection(item) {
-    previousSelection.mesh = item.object;
-    previousSelection.material = item.object.material;
-}
+    const container = document.createElement('div');
+    container.className = 'label-container';
 
-function restorePreviousSelection() {
-    if(previousSelection.mesh) {
-        previousSelection.mesh.material = previousSelection.material;
-        previousSelection.mesh = null;
-        previousSelection.material = null;
-    }
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'X';
+    deleteButton.className = 'delete-button hidden';
+    container.appendChild(deleteButton);
 
-}
+    const label = document.createElement('p');
+    label.textContent = message;
+    label.classList.add('label');
+    container.appendChild(label);
+
+
+    const labelObject = new CSS2DObject(container);
+    labelObject.position.copy(collisionLocation);
+    scene.add(labelObject);
+
+    deleteButton.onclick = () => {
+        labelObject.removeFromParent();
+        labelObject.element = null;
+        container.remove();
+    };
+
+    container.onmouseenter = () => deleteButton.classList.remove('hidden');
+    container.onmouseleave = () => deleteButton.classList.add('hidden');
+})
+
 
 // 9 Animation
 
@@ -232,39 +216,40 @@ function animate() {
     // earth.rotation.y += 0.03;
 
     renderer.render( scene, camera );
+    labelRenderer.render(scene, camera);
     requestAnimationFrame( animate );
 }
 animate();
 
 // 10 GUI
 
-const gui = new GUI();
-const min = -3;
-const max = 3;
-const step = 0.01;
+// const gui = new GUI();
+// const min = -3;
+// const max = 3;
+// const step = 0.01;
 
-const transformationFolder = gui.addFolder('Transformation');
-
-
-transformationFolder.add(box.position, 'y', min, max, step).name("Position Y");
-transformationFolder.add(box.position, 'x', min, max, step).name("Position X");
-transformationFolder.add(box.position, 'z', min, max, step).name("Position Z");
-
-gui.addFolder('Visibility').add(box, 'visible');
-
-const colorParam = {
-    value: 0xff0000
-}
-
-gui.addFolder('Colors').addColor(colorParam, 'value').name("Color").onChange(() => {
-    box.material.color.set(colorParam.value);
-});
+// const transformationFolder = gui.addFolder('Transformation');
 
 
-const functionParam = {
-    spin: () => {
-        gsap.to( box.rotation, { y: box.rotation.y + 10, duration: 1})
-    }
-}
+// transformationFolder.add(box.position, 'y', min, max, step).name("Position Y");
+// transformationFolder.add(box.position, 'x', min, max, step).name("Position X");
+// transformationFolder.add(box.position, 'z', min, max, step).name("Position Z");
 
-gui.addFolder('Animation').add(functionParam, 'spin').name("Spin");
+// gui.addFolder('Visibility').add(box, 'visible');
+
+// const colorParam = {
+//     value: 0xff0000
+// }
+
+// gui.addFolder('Colors').addColor(colorParam, 'value').name("Color").onChange(() => {
+//     box.material.color.set(colorParam.value);
+// });
+
+
+// const functionParam = {
+//     spin: () => {
+//         gsap.to( box.rotation, { y: box.rotation.y + 10, duration: 1})
+//     }
+// }
+
+// gui.addFolder('Animation').add(functionParam, 'spin').name("Spin");
