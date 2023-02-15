@@ -60,6 +60,8 @@ import { CSS2DRenderer, CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRen
 
 import Stats from 'stats.js/src/Stats';
 
+import {VRButton} from 'three/examples/jsm/webxr/VRButton.js';
+
 
 // 1 the Scene
 
@@ -176,7 +178,13 @@ cameraControls.dollyToCursor = true;
 
 cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
 
-// 8 Picking
+// 8 VR
+
+const vrButton = new VRButton.createButton(renderer);
+document.body.appendChild(vrButton);
+
+
+// 9 Picking
 
 // const raycaster = new Raycaster();
 // const mouse = new Vector2();
@@ -223,32 +231,44 @@ cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
 // })
 
 
-// 9 Animation
+// 10 Animation
 
 const stats = new Stats();
 stats.showPanel(2);
 document.body.appendChild(stats.dom);
 
-function animate() {
-
+renderer.setAnimationLoop( () => {
     stats.begin();
 
     const delta = clock.getDelta();
     cameraControls.update( delta );
 
-    // sun.rotation.y += 0.01;
-    // earth.rotation.y += 0.03;
-
     renderer.render( scene, camera );
     labelRenderer.render(scene, camera);
 
     stats.end();
+});
 
-    requestAnimationFrame( animate );
-}
-animate();
+// function animate() {
 
-// 10 GUI
+//     stats.begin();
+
+//     const delta = clock.getDelta();
+//     cameraControls.update( delta );
+
+//     // sun.rotation.y += 0.01;
+//     // earth.rotation.y += 0.03;
+
+//     renderer.render( scene, camera );
+//     labelRenderer.render(scene, camera);
+
+//     stats.end();
+
+//     requestAnimationFrame( animate );
+// }
+// animate();
+
+// 11 GUI
 
 // const gui = new GUI();
 // const min = -3;
