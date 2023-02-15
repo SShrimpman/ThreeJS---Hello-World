@@ -58,6 +58,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { CSS2DRenderer, CSS2DObject} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
+import Stats from 'stats.js/src/Stats';
+
 
 // 1 the Scene
 
@@ -76,31 +78,46 @@ scene.add(grid);
 
 // 2 the Object
 
-const loader = new GLTFLoader();
 
-const loadingScreen = document.getElementById('loader-container');
-const progressText = document.getElementById('progress-text');
-let policeStation;
 
-loader.load('./police_station.glb',
+// const geometry = new BoxGeometry();
+// const material = new MeshLambertMaterial({color: 'orange'});
+// const mesh = new Mesh(geometry, material);
+// scene.add(mesh);
 
-    (gltf) => {
-        policeStation = gltf.scene;
-        scene.add(policeStation);
-        loadingScreen.classList.add('hidden');
-    },
+// window.ondblclick = () => {
+//     mesh.removeFromParent();
+//     geometry.dispose();
+//     material.dispose();
+//     mesh.geometry = null;
+//     mesh.material = null;
+// }
 
-    (progress) => {
-        const progressPercent = progress.loaded / progress.total * 100;
-        const formatted = Math.trunc(progressPercent);
-        progressText.textContent = `Loading: ${formatted}%`;
-    },
+// const loader = new GLTFLoader();
 
-    (error) => {
-        console.log(error);
-    }
+// const loadingScreen = document.getElementById('loader-container');
+// const progressText = document.getElementById('progress-text');
+// let policeStation;
 
-);
+// loader.load('./police_station.glb',
+
+//     (gltf) => {
+//         policeStation = gltf.scene;
+//         scene.add(policeStation);
+//         loadingScreen.classList.add('hidden');
+//     },
+
+//     (progress) => {
+//         const progressPercent = progress.loaded / progress.total * 100;
+//         const formatted = Math.trunc(progressPercent);
+//         progressText.textContent = `Loading: ${formatted}%`;
+//     },
+
+//     (error) => {
+//         console.log(error);
+//     }
+
+// );
 
 
 // 3 the Camera
@@ -161,54 +178,61 @@ cameraControls.setLookAt( 18, 20, 18, 0, 10, 0);
 
 // 8 Picking
 
-const raycaster = new Raycaster();
-const mouse = new Vector2();
+// const raycaster = new Raycaster();
+// const mouse = new Vector2();
 
-window.addEventListener( 'dblclick', (event) => {
-    mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
-    mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
+// window.addEventListener( 'dblclick', (event) => {
+//     mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+//     mouse.y = -(event.clientY / canvas.clientHeight) * 2 + 1;
 
-    raycaster.setFromCamera( mouse, camera );
-    const intersects = raycaster.intersectObject(policeStation);
+//     raycaster.setFromCamera( mouse, camera );
+//     const intersects = raycaster.intersectObject(policeStation);
 
-    if(!intersects.length) return;
+//     if(!intersects.length) return;
     
-    const collisionLocation = intersects[0].point;
+//     const collisionLocation = intersects[0].point;
 
-    const message = window.prompt('Describe the issue:');
+//     const message = window.prompt('Describe the issue:');
 
-    const container = document.createElement('div');
-    container.className = 'label-container';
+//     const container = document.createElement('div');
+//     container.className = 'label-container';
 
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'X';
-    deleteButton.className = 'delete-button hidden';
-    container.appendChild(deleteButton);
+//     const deleteButton = document.createElement('button');
+//     deleteButton.textContent = 'X';
+//     deleteButton.className = 'delete-button hidden';
+//     container.appendChild(deleteButton);
 
-    const label = document.createElement('p');
-    label.textContent = message;
-    label.classList.add('label');
-    container.appendChild(label);
+//     const label = document.createElement('p');
+//     label.textContent = message;
+//     label.classList.add('label');
+//     container.appendChild(label);
 
 
-    const labelObject = new CSS2DObject(container);
-    labelObject.position.copy(collisionLocation);
-    scene.add(labelObject);
+//     const labelObject = new CSS2DObject(container);
+//     labelObject.position.copy(collisionLocation);
+//     scene.add(labelObject);
 
-    deleteButton.onclick = () => {
-        labelObject.removeFromParent();
-        labelObject.element = null;
-        container.remove();
-    };
+//     deleteButton.onclick = () => {
+//         labelObject.removeFromParent();
+//         labelObject.element = null;
+//         container.remove();
+//     };
 
-    container.onmouseenter = () => deleteButton.classList.remove('hidden');
-    container.onmouseleave = () => deleteButton.classList.add('hidden');
-})
+//     container.onmouseenter = () => deleteButton.classList.remove('hidden');
+//     container.onmouseleave = () => deleteButton.classList.add('hidden');
+// })
 
 
 // 9 Animation
 
+const stats = new Stats();
+stats.showPanel(2);
+document.body.appendChild(stats.dom);
+
 function animate() {
+
+    stats.begin();
+
     const delta = clock.getDelta();
     cameraControls.update( delta );
 
@@ -217,6 +241,9 @@ function animate() {
 
     renderer.render( scene, camera );
     labelRenderer.render(scene, camera);
+
+    stats.end();
+
     requestAnimationFrame( animate );
 }
 animate();
